@@ -1,0 +1,1 @@
+gcc -Wall -o mmm main.c -Isrc -Lsrc -l:libraylib.a -lGL -lm -lpthread -ldl -lrt -lX11
