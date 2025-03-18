@@ -2,7 +2,7 @@
 
 # Variabile
 EXECUTABLE="mmm"
-ICON_FILE="resources/dino.jpeg"
+ICON_FILE="resources/icon.png"
 DESKTOP_FILE="jocul_meu.desktop"
 INSTALL_DIR="$HOME/.local/share/applications"
 
