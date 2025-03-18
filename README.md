@@ -35,5 +35,5 @@
 
 ## 🧰 Librării utilizate
 
-- To Be Announced (TBA)
+- Raylib
 
