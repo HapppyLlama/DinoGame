@@ -4,25 +4,25 @@
 
 ## 🎯 Obiective principale
 
-- ✅ **Crearea personajului principal**  
+- ❌ **Crearea personajului principal**  
   Dinozaurul are abilitatea de a sări pentru a evita obstacolele. Pe parcursul jocului, poziția sa orizontală rămâne fixă.
 
-- ✅ **Implementarea solului**  
+- ❌ **Implementarea solului**  
   Solul este reprezentat printr-un fișier `.png` cu coliziune, care se va deplasa ciclic pe orizontală pentru a crea iluzia de mișcare.
 
-- ✅ **Generarea obstacolelor**  
+- ❌ **Generarea obstacolelor**  
   Obstacolele constau în cactuși și păsări, generate aleator cu un interval minim de timp între apariții, pentru a evita secvențele imposibile. Coliziunea cu obstacolele încheie jocul și redirecționează jucătorul către ecranul de start.
 
-- ✅ **Crearea fundalului**  
+- ❌ **Crearea fundalului**  
   Fundal personalizat pentru o experiență vizuală plăcută.
 
-- ✅ **Design pentru elementele jocului**  
+- ❌ **Design pentru elementele jocului**  
   Elemente grafice originale sau prelucrate pentru o estetică coerentă.
 
 - ✅ **Execuția jocului ca aplicație**  
   Jocul rulează într-o fereastră grafică, nu prin terminal.
 
-- ✅ **Animări fluide**  
+- ❌ **Animări fluide**  
   Personajul, obstacolele și fundalul beneficiază de animații pentru a adăuga dinamism.
 
 ## ⭐ Funcționalități opționale
