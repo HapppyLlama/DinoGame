@@ -33,7 +33,11 @@
 - 🌙 **Ciclu zi-noapte**  
   Alternanța zi-noapte afectează vizibilitatea în timpul nopții, crescând dificultatea.
 
+  
+
 ## 🧰 Librării utilizate
 
 - Raylib
+
+Info: submodule
 
