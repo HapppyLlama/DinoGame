@@ -4,10 +4,10 @@
 
 ## 🎯 Obiective principale
 
-- ❌ **Crearea personajului principal**  
+- ✅ **Crearea personajului principal**  
   Dinozaurul are abilitatea de a sări pentru a evita obstacolele. Pe parcursul jocului, poziția sa orizontală rămâne fixă.
 
-- ❌ **Implementarea solului**  
+- ✅ **Implementarea solului**  
   Solul este reprezentat printr-un fișier `.png` cu coliziune, care se va deplasa ciclic pe orizontală pentru a crea iluzia de mișcare.
 
 - ❌ **Generarea obstacolelor**  
