@@ -3,7 +3,7 @@
 # Variabile
 EXECUTABLE="mmm"
 ICON_FILE="resources/icon.png"
-DESKTOP_FILE="jocul_meu.desktop"
+DESKTOP_FILE="DinoGame.desktop"
 INSTALL_DIR="$HOME/.local/share/applications"
 
 # 1. Compilează jocul
@@ -20,7 +20,7 @@ fi
 echo "Creare fișier .desktop..."
 cat > $DESKTOP_FILE <<EOL
 [Desktop Entry]
-Name=Jocul Meu
+Name=DinoGame
 Exec=$(pwd)/$EXECUTABLE
 Icon=$(pwd)/$ICON_FILE
 Type=Application
