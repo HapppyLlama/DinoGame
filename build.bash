@@ -1,45 +1,46 @@
 #!/bin/bash
 
-# Variabile
+# Configurare
 EXECUTABLE="mmm"
 ICON_FILE="resources/icon.png"
 DESKTOP_FILE="DinoGame.desktop"
 INSTALL_DIR="$HOME/.local/share/applications"
+BUILD_DIR="build"
 
-# 1. Compilează jocul
+# 1. Compilează Raylib (dacă nu e deja construit)
+echo "Compilare Raylib..."
+cd raylib/src
+make PLATFORM=PLATFORM_DESKTOP  # Linux (X11) implicit
+cd ../..
+
+# 2. Compilează jocul (link-uit la biblioteca Raylib)
 echo "Compilare joc..."
-gcc -o $EXECUTABLE main.c -Isrc -Lsrc -l:libraylib.a -lGL -lm -lpthread -ldl -lrt -lX11
+mkdir -p $BUILD_DIR
+gcc -o $BUILD_DIR/$EXECUTABLE main.c -Iraylib/src -Lraylib/src -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
-# Verifică dacă compilarea a reușit
+# Verifică erori
 if [ $? -ne 0 ]; then
     echo "Eroare la compilare!"
     exit 1
 fi
 
-# 2. Creează fișierul .desktop
-echo "Creare fișier .desktop..."
-cat > $DESKTOP_FILE <<EOL
+# 3. Creează fișier .desktop
+echo "Creare $DESKTOP_FILE..."
+cat > $BUILD_DIR/$DESKTOP_FILE <<EOL
 [Desktop Entry]
 Name=DinoGame
-Exec=$(pwd)/$EXECUTABLE
+Exec=$(pwd)/$BUILD_DIR/$EXECUTABLE
 Icon=$(pwd)/$ICON_FILE
 Type=Application
 Categories=Game;
+Terminal=false
 EOL
 
-# 3. Dă permisiuni de executare fișierului .desktop
-chmod +x $DESKTOP_FILE
+chmod +x $BUILD_DIR/$DESKTOP_FILE
 
-# 4. Copiază fișierul .desktop în locația corectă
-echo "Instalare fișier .desktop în $INSTALL_DIR..."
+# 4. Instalare
+echo "Instalare în $INSTALL_DIR..."
 mkdir -p $INSTALL_DIR
-cp $DESKTOP_FILE $INSTALL_DIR/
+cp $BUILD_DIR/$DESKTOP_FILE $INSTALL_DIR/
 
-# 5. Verifică dacă totul a funcționat
-if [ $? -eq 0 ]; then
-    echo "Jocul a fost compilat și instalat cu succes!"
-    echo "Poți găsi jocul în meniul de aplicații."
-else
-    echo "Eroare la instalare!"
-    exit 1
-fi
+echo "Gata! Jocul apare în meniul de aplicații."
