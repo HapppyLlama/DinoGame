@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
 
 // definirea constantelor
 
@@ -20,6 +22,32 @@
 #define BIRD_ANIM_DELAY 0.2f
 
 #define COLLISION_OFFSET 3
+
+#define DAY_DURATION 10.0f     // 10 secunde zi
+#define NIGHT_DURATION 10.0f    // 10 secunde noapte
+#define FADE_DURATION 0.2f     // 0.5 secunde fade
+#define LIGHT_RADIUS 400.0f   // Raza mare pentru lumina
+#define NIGHT_ALPHA 255
+#define FADE_DISTANCE 100.0f 
+
+typedef enum {
+    GAME_STATE_MENU,
+    GAME_STATE_PLAYING,
+    GAME_STATE_GAME_OVER
+} GameStates;
+
+typedef struct {
+    Rectangle rect;
+    const char* text;
+    int textWidth;
+} MenuButton;
+
+typedef struct {
+    MenuButton playButton;
+    MenuButton quitButton;
+    bool playHovered;
+    bool quitHovered;
+} MenuState;
 
 // strucutura cu info privind butoane
 
@@ -97,6 +125,11 @@ typedef struct {
     ObstaclePool obstacles;
     bool gameOver;
 
+    bool nightModeActive;
+    float nightCycleTimer;
+    bool isNight;
+    RenderTexture2D lightMask;
+    float nightAlpha;
 } GameState;
 
 // parametrii ferestrei
@@ -107,6 +140,8 @@ typedef struct {
     bool isFullscreen;
     float scaleFactor;
     ResolutionButton resolutions[NUM_RESOLUTIONS];
+    MenuState menu;
+    GameStates gameState;
 } WindowState;
 
 static const Vector2 BASE_RESOLUTION = { 1600, 900 }; // rezolutia de baza a frerestrei
@@ -161,6 +196,9 @@ void ResetGame(GameState* game) {
     for (int i = 0; i < MAX_OBSTACLES; i++) {
         game->obstacles.obstacles[i].active = false;
     }
+    game->nightModeActive = false;
+    game->gameOver = false;
+    game->nightModeActive = false;
 }
 
 // initializare obstacole
@@ -247,6 +285,7 @@ void UpdateObstacles(GameState* state, const WindowState* window, float deltaTim
             }
         }
     }
+
 }
 
 // initializarea parametrilor de joc
@@ -274,6 +313,12 @@ void InitGameState(GameState* state) {
     InitObstacles(state);
     state->gameOver = false;
     state->highScore = LoadHighScore();
+
+    state->nightModeActive = false;
+    state->nightCycleTimer = 0.0f;
+    state->isNight = false;
+    state->lightMask = LoadRenderTexture(BASE_RESOLUTION.x, BASE_RESOLUTION.y);
+    state->nightAlpha = 0.0f;
 }
 
 // actualizare scor (1 pct la 0.1 sec)
@@ -304,6 +349,51 @@ void UpdateButtonPositions(WindowState* window) {
     }
 }
 
+void DrawMenu(const WindowState* window) {
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+
+    // Title
+    const char* title = "DINO GAME";
+    int titleWidth = MeasureText(title, 60);
+    DrawText(title, window->width/2 - titleWidth/2, 150, 60, DARKGRAY);
+
+    // Play button
+    DrawRectangleRec(window->menu.playButton.rect, window->menu.playHovered ? SKYBLUE : LIGHTGRAY);
+    DrawText(window->menu.playButton.text, 
+        window->menu.playButton.rect.x + (window->menu.playButton.rect.width - window->menu.playButton.textWidth)/2,
+        window->menu.playButton.rect.y + 10,
+        30, DARKBLUE);
+
+    // Quit button
+    DrawRectangleRec(window->menu.quitButton.rect, window->menu.quitHovered ? SKYBLUE : LIGHTGRAY);
+    DrawText(window->menu.quitButton.text,
+        window->menu.quitButton.rect.x + (window->menu.quitButton.rect.width - window->menu.quitButton.textWidth)/2,
+        window->menu.quitButton.rect.y + 10,
+        30, DARKBLUE);
+
+    EndDrawing();
+}
+
+void InitMenuButtons(WindowState* window) {
+    const float buttonWidth = 200;
+    const float buttonHeight = 50;
+    Vector2 center = { window->width/2 - buttonWidth/2, window->height/2 - buttonHeight/2 };
+
+    window->menu.playButton = (MenuButton){
+        .rect = { center.x, center.y - 70, buttonWidth, buttonHeight },
+        .text = "Play"
+    };
+    
+    window->menu.quitButton = (MenuButton){
+        .rect = { center.x, center.y, buttonWidth, buttonHeight },
+        .text = "Quit"
+    };
+
+    window->menu.playButton.textWidth = MeasureText(window->menu.playButton.text, 30);
+    window->menu.quitButton.textWidth = MeasureText(window->menu.quitButton.text, 30);
+}
+
 // intializare parametrilor de fereastra
 
 void InitWindowState(WindowState* state) {
@@ -324,6 +414,9 @@ void InitWindowState(WindowState* state) {
         state->resolutions[i].rect = (Rectangle){0};
     }
     UpdateButtonPositions(state);
+
+    state->gameState = GAME_STATE_MENU;
+    InitMenuButtons(state);
 }
 
 // formula de calcul a factorului de scalare la diferite dimensiuni a ferestrei
@@ -339,6 +432,12 @@ void RescaleGame(GameState* game, WindowState* window) {
     game->screenPosition.x = game->basePosition.x * window->scaleFactor;
     game->screenPosition.y = game->basePosition.y * window->scaleFactor;
 
+    // Recrează lightMask cu noile dimensiuni
+    if (game->lightMask.id != 0) {
+        UnloadRenderTexture(game->lightMask);
+    }
+    game->lightMask = LoadRenderTexture(window->width, window->height);
+    
     // actualizează dreptunghiul personajului
     const Rectangle* frame = game->isCrouching ? &game->crouchFrames[game->currentFrame] : &game->runFrames[game->currentFrame];
     game->rect.width = frame->width * window->scaleFactor;
@@ -365,6 +464,7 @@ void RescaleGame(GameState* game, WindowState* window) {
         }
     }
     UpdateButtonPositions(window);
+    InitMenuButtons(window); // Add this to recenter menu buttons
 }
 
 // modul fullscreen
@@ -401,6 +501,31 @@ void UpdateAnimation(GameState* game, const WindowState* window, float deltaTime
 // functia ce contine toate manipularile cu jocul (sarit, furis, redimensionare etc.)
 
 void HandleInput(WindowState* window, GameState* game) {
+    Vector2 mousePos = GetMousePosition();
+    
+    // Handle menu state
+    if (window->gameState == GAME_STATE_MENU) {
+        window->menu.playHovered = CheckCollisionPointRec(mousePos, window->menu.playButton.rect);
+        window->menu.quitHovered = CheckCollisionPointRec(mousePos, window->menu.quitButton.rect);
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            if (window->menu.playHovered) {
+                window->gameState = GAME_STATE_PLAYING;
+                ResetGame(game);
+            }
+            if (window->menu.quitHovered) {
+                CloseWindow();
+                exit(0);
+            }
+        }
+        return;
+    }
+
+    if (game->gameOver && IsKeyPressed(KEY_SPACE)) {
+        window->gameState = GAME_STATE_MENU;
+        ResetGame(game);
+    }
+
     static bool wasWPressed = false;
     bool isWPressed = IsKeyDown(KEY_W);
     bool wasCrouching = game->isCrouching;
@@ -463,6 +588,11 @@ void HandleInput(WindowState* window, GameState* game) {
     if (game->isCrouching && game->isJumping) {
         game->baseJumpVelocity = FAST_FALL_VELOCITY;
     }
+
+    if (game->gameOver && IsKeyPressed(KEY_SPACE)) {
+        window->gameState = GAME_STATE_MENU;
+        ResetGame(game);
+    }
 }
 
 // actualizarea parametrilor ce raspund de fizica jocului
@@ -492,6 +622,7 @@ void UpdatePhysics(GameState* game, const WindowState* window, float deltaTime) 
     game->screenPosition.y = game->basePosition.y * window->scaleFactor;
     game->rect.x = game->screenPosition.x;
     game->rect.y = game->screenPosition.y;
+
 }
 
 // creare butoane
@@ -546,6 +677,39 @@ void DrawGame(const WindowState* window, const GameState* game) {
         }
     }
 
+    // Desenăm efectul de întuneric și lumină
+    if (game->nightModeActive && game->nightAlpha > 0) {
+        BeginTextureMode(game->lightMask);
+        ClearBackground(BLANK);
+        
+        // Fundal întunecat cu transparență variabilă
+        DrawRectangle(0, 0, BASE_RESOLUTION.x, BASE_RESOLUTION.y, 
+                    (Color){0, 0, 0, (unsigned char)(game->nightAlpha * NIGHT_ALPHA)});
+        
+        Vector2 playerCenter = {
+            game->basePosition.x + game->baseSize.x/2,
+            game->basePosition.y + game->baseSize.y/2
+        };
+    
+        // Gradient de la marginea cercului către exterior
+        DrawCircleGradient(
+            (int)playerCenter.x,
+            (int)playerCenter.y,
+            LIGHT_RADIUS + FADE_DISTANCE,
+            (Color){0, 0, 0, 0},
+            (Color){0, 0, 0, (unsigned char)(game->nightAlpha * NIGHT_ALPHA)}
+        );
+    
+        
+        EndTextureMode();
+        
+        // Desenează masca pe ecran
+        DrawTextureRec(game->lightMask.texture, 
+            (Rectangle){ 0, 0, BASE_RESOLUTION.x, -BASE_RESOLUTION.y }, 
+            (Vector2){ 0, 0 }, 
+            WHITE);
+    }
+
     // gameover
         if (game->gameOver) {
         const char* text = "GAME OVER - Press SPACE to restart";
@@ -582,20 +746,63 @@ int main(void) {
     while (!WindowShouldClose()) {
         float deltaTime = GetFrameTime();
         
+        // HandleInput should be called once per frame
         HandleInput(&window, &game);
-        if (!game.gameOver) {
-            UpdatePhysics(&game, &window, deltaTime);
-            UpdateScore(&game, deltaTime);
-            UpdateObstacles(&game, &window, deltaTime);
-            
-            if (!game.isJumping) {
-                UpdateAnimation(&game, &window, deltaTime);
-            }
-        }
         
-        DrawGame(&window, &game);
+        switch (window.gameState) {
+            case GAME_STATE_MENU:
+                DrawMenu(&window);
+                break;
+                
+            case GAME_STATE_PLAYING:
+                if (!game.gameOver) {
+                    UpdatePhysics(&game, &window, deltaTime);
+                    UpdateScore(&game, deltaTime);
+                    UpdateObstacles(&game, &window, deltaTime);
+                    
+                    // Verificăm dacă scorul a depășit 1000 pentru a activa ciclul
+                    if (game.score >= 10 && !game.nightModeActive) {
+                        game.nightModeActive = true;
+                        game.nightCycleTimer = 0.0f;
+                    }
+
+                    // Actualizăm ciclul zi/noapte
+                    if (game.nightModeActive) {
+                        game.nightCycleTimer += deltaTime;
+                
+                        float totalCycleTime = DAY_DURATION + NIGHT_DURATION + 2*FADE_DURATION;
+                        float cycleProgress = fmod(game.nightCycleTimer, totalCycleTime);
+                
+                        if (cycleProgress < DAY_DURATION) { // Zi completă
+                            game.nightAlpha = 0.0f;
+                        }
+                        else if (cycleProgress < DAY_DURATION + FADE_DURATION) { // Tranziție la noapte
+                            float fadeProgress = (cycleProgress - DAY_DURATION) / FADE_DURATION;
+                            game.nightAlpha = fadeProgress;
+                        }
+                        else if (cycleProgress < DAY_DURATION + FADE_DURATION + NIGHT_DURATION) { // Noapte completă
+                            game.nightAlpha = 1.0f;
+                        }
+                        else { // Tranziție la zi
+                            float fadeProgress = (cycleProgress - (DAY_DURATION + FADE_DURATION + NIGHT_DURATION)) / FADE_DURATION;
+                            game.nightAlpha = 1.0f - fadeProgress;
+                        }
+                    }
+                    
+                    if (!game.isJumping) {
+                        UpdateAnimation(&game, &window, deltaTime);
+                    }
+                }
+                DrawGame(&window, &game);
+                break;
+                
+            case GAME_STATE_GAME_OVER:
+                DrawGame(&window, &game); // Show game over screen
+                break;
+        }
     }
 
+    UnloadRenderTexture(game.lightMask);
     UnloadTexture(game.spriteSheet);
     CloseWindow();
     return 0;
