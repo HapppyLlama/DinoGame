@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=DinoGame
-Exec=/home/kuzco/mmm/DinoGame/build/mmm
+Exec=/home/kuzco/mmm/DinoGame/build/DinoGame
 Icon=/home/kuzco/mmm/DinoGame/resources/icon.png
 Type=Application
 Categories=Game;

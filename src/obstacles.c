@@ -78,3 +78,15 @@ int main(void) {
     CloseWindow();
     return 0;
 }
+
+void UpdateObstacles(GameState *game, WindowState *window, float deltaTime) {
+    for (int i = 0; i < game->obstacleCount; i++) {
+        Obstacle *obs = &game->obstacles[i];
+        if (obs->type == OBSTACLE_METEORITE) {
+            if (!obs->hasPassedPlayer && obs->y > game->player.y) {
+                obs->hasPassedPlayer = true;
+                if (game->hp > 0) game->hp -= 1;
+            }
+        }
+    }
+}
