@@ -17,7 +17,7 @@
   Fundal personalizat pentru o experiență vizuală plăcută.
 
 - ❌✅ **Design pentru elementele jocului**  
-  Elemente grafice originale sau prelucrate pentru o estetică coerentă.
+  Elemente grafice pentru o estetică coerentă.
 
 - ✅ **Execuția jocului ca aplicație**  
   Jocul rulează într-o fereastră grafică, nu prin terminal.
@@ -27,10 +27,10 @@
 
 ## ⭐ Funcționalități opționale
 
-- ❌ **Boss Fight / Modul Campanie**  
+- ❌✅ **Boss Fight / Modul Campanie**  
   La atingerea unui scor prestabilit, jucătorul intră într-un boss fight. Bossul atacă prin aruncarea de meteoriți, iar lupta este împărțită în mai multe etape (faze). După fiecare etapă finalizată cu succes de către jucător, bossul primește damage. La finalul confruntării, odată cu înfrângerea bossului, se activează scena de sfârșit: personajul găsește o peșteră unde poate supraviețui.
 
-- ❌ **Ciclu zi-noapte**  
+- ✅ **Ciclu zi-noapte**  
   Alternanța zi-noapte afectează vizibilitatea în timpul nopții, crescând dificultatea.
 
   
