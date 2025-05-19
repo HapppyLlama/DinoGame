@@ -4,8 +4,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-// definirea constantelor
-
 #define NUM_RESOLUTIONS 4
 #define GROUND_HEIGHT 100
 #define FRAME_DELAY 0.15f
@@ -23,30 +21,27 @@
 
 #define COLLISION_OFFSET 3
 
-#define DAY_DURATION 10.0f     // 10 secunde zi
-#define NIGHT_DURATION 10.0f    // 10 secunde noapte
-#define FADE_DURATION 0.2f     // 0.5 secunde fade
-#define LIGHT_RADIUS 400.0f   // Raza mare pentru lumina
+#define DAY_DURATION 20.0f
+#define NIGHT_DURATION 10.0f
+#define FADE_DURATION 0.2f
+#define LIGHT_RADIUS 400.0f
 #define NIGHT_ALPHA 255
 #define FADE_DISTANCE 100.0f 
 
-// Add new boss fight related constants
 #define BOSS_THRESHOLD_SCORE 100
 #define BOSS_HP_MAX 3
 #define SCREEN_SHAKE_DURATION 1.0f
 #define SCREEN_SHAKE_INTENSITY 10.0f
 
-// Add pre-boss threshold
 #define PRE_BOSS_THRESHOLD (BOSS_THRESHOLD_SCORE - 50)
 
-// Update meteor-related constants for faster and more varied falling
-#define MAX_METEORS 15               // Allow more meteors on screen
-#define METEOR_SPAWN_INTERVAL_MIN 0.5f  // Even faster spawning
-#define METEOR_SPAWN_INTERVAL_MAX 1.5f  // Even faster spawning
-#define METEOR_FALL_SPEED_X 300.0f      // Faster horizontal speed
-#define METEOR_FALL_SPEED_Y 1000.0f      // Much faster vertical speed
-#define METEOR_ANIM_DELAY 0.08f         // Faster animation
-#define METEOR_GROUND_LIFETIME 10.0f    // Meteors stay on ground much longer
+#define MAX_METEORS 15
+#define METEOR_SPAWN_INTERVAL_MIN 0.5f
+#define METEOR_SPAWN_INTERVAL_MAX 1.5f
+#define METEOR_FALL_SPEED_X 700.0f
+#define METEOR_FALL_SPEED_Y 1000.0f
+#define METEOR_ANIM_DELAY 0.08f
+#define METEOR_GROUND_LIFETIME 10.0f
 
 #define METEOR_IMPACT_FRAMES 3
 
@@ -54,7 +49,7 @@ typedef enum {
     GAME_STATE_MENU,
     GAME_STATE_PLAYING,
     GAME_STATE_GAME_OVER,
-    GAME_STATE_RESOLUTION // Added resolution state
+    GAME_STATE_RESOLUTION
 } GameStates;
 
 typedef struct {
@@ -65,16 +60,14 @@ typedef struct {
 
 typedef struct {
     MenuButton playButton;
-    MenuButton storyButton; // Add story mode button
+    MenuButton storyButton;
     MenuButton quitButton;
     MenuButton resolutionButton;
     bool playHovered;
-    bool storyHovered; // Add hover state for story mode
+    bool storyHovered;
     bool quitHovered;
     bool resolutionHovered;
 } MenuState;
-
-// strucutura cu info privind butoane
 
 typedef struct {
     Rectangle rect;
@@ -83,8 +76,6 @@ typedef struct {
     int width;
     int height;
 } ResolutionButton;
-
-// enum cu tipurile de obstacole
 
 typedef enum {
     OBSTACLE_CACTUS_1,
@@ -96,15 +87,11 @@ typedef enum {
     OBSTACLE_BIRD
 } ObstacleType;
 
-// dimensiuni obstacole
-
 typedef struct {
     float width;
     float height;
     float yOffset;
 } ObstacleDimensions;
-
-// structura cu info despre obstacole
 
 typedef struct {
     Rectangle rect;
@@ -115,15 +102,12 @@ typedef struct {
     float frameTime;
 } Obstacle;
 
-// structura folosita in viitor la spawnul de obstacole
-
 typedef struct {
     Obstacle obstacles[MAX_OBSTACLES];
     float spawnTimer;
     float nextSpawnTime;
 } ObstaclePool;
 
-// Add PauseMenuState structure
 typedef struct {
     Rectangle continueButton;
     Rectangle mainMenuButton;
@@ -132,14 +116,12 @@ typedef struct {
     bool isPaused;
 } PauseMenuState;
 
-// Add meteor states
 typedef enum {
     METEOR_STATE_FALLING,
     METEOR_STATE_IMPACT,
     METEOR_STATE_INACTIVE
 } MeteorState;
 
-// Add meteor structure
 typedef struct {
     Vector2 position;
     Rectangle rect;
@@ -150,8 +132,6 @@ typedef struct {
     float impactTime;
     bool active;
 } Meteor;
-
-// structura ce contine parametrii de joc
 
 typedef struct {
     Rectangle rect;
@@ -181,25 +161,22 @@ typedef struct {
     bool nightModeActive;
     float nightCycleTimer;
     bool isNight;
+    float dayCycleTimer;
     RenderTexture2D lightMask;
     float nightAlpha;
 
-    PauseMenuState pauseMenu; // Added pause menu state
+    PauseMenuState pauseMenu;
 
-    // Story mode and boss fight
     bool isStoryMode;
     bool bossActive;
     int bossHP;
     float screenShakeTimer;
     float screenShakeIntensity;
 
-    // Meteor system
     Meteor meteors[MAX_METEORS];
     float meteorSpawnTimer;
     float nextMeteorSpawnTime;
 } GameState;
-
-// parametrii ferestrei
 
 typedef struct {
     int width;
@@ -211,9 +188,7 @@ typedef struct {
     GameStates gameState;
 } WindowState;
 
-static const Vector2 BASE_RESOLUTION = { 1600, 900 }; // rezolutia de baza a frerestrei
-
-// dimensiunile obstacolelor
+static const Vector2 BASE_RESOLUTION = { 1600, 900 };
 
 static const ObstacleDimensions CACTUS_DIMENSIONS[] = {
     [OBSTACLE_CACTUS_1] = {.width = 34,  .height = 68, .yOffset = 0},
@@ -225,10 +200,8 @@ static const ObstacleDimensions CACTUS_DIMENSIONS[] = {
     [OBSTACLE_BIRD]     = {.width = 93,  .height = 80,  .yOffset = -61}
 };
 
-// Forward declarations
 void InitMeteors(GameState* state);
-
-// salveaza scorul maxim obstinut in fisier
+void ChangeResolution(WindowState* window, GameState* game, int width, int height, bool fullscreen);
 
 void SaveHighScore(int highScore) {
     FILE* file = fopen("highscore.bin", "wb");
@@ -237,8 +210,6 @@ void SaveHighScore(int highScore) {
         fclose(file);
     }
 }
-
-// scoate din fisier info cu scorul maxim
 
 int LoadHighScore() {
     int highScore = 0;
@@ -250,12 +221,10 @@ int LoadHighScore() {
     return highScore;
 }
 
-// Consolidate button hover checks into a utility function
 bool IsButtonHovered(const Rectangle* button) {
     return CheckCollisionPointRec(GetMousePosition(), *button);
 }
 
-// Optimize ResetGame by removing redundant resets
 void ResetGame(GameState* game) {
     if (game->score > game->highScore) {
         game->highScore = game->score;
@@ -271,17 +240,13 @@ void ResetGame(GameState* game) {
     }
     game->nightModeActive = false;
 
-    // Reset boss fight variables
     game->bossActive = false;
     game->bossHP = BOSS_HP_MAX;
     game->screenShakeTimer = 0.0f;
     game->screenShakeIntensity = 0.0f;
 
-    // Reset meteors
     InitMeteors(game);
 }
-
-// initializare obstacole
 
 void InitObstacles(GameState* state) {
     for (int i = 0; i < MAX_OBSTACLES; i++) {
@@ -291,7 +256,6 @@ void InitObstacles(GameState* state) {
     state->obstacles.nextSpawnTime = GetRandomValue(MIN_SPAWN_INTERVAL, MAX_SPAWN_INTERVAL);
 }
 
-// Initialize meteors
 void InitMeteors(GameState* state) {
     for (int i = 0; i < MAX_METEORS; i++) {
         state->meteors[i].active = false;
@@ -301,8 +265,6 @@ void InitMeteors(GameState* state) {
     state->nextMeteorSpawnTime = GetRandomValue(METEOR_SPAWN_INTERVAL_MIN * 100, 
                                             METEOR_SPAWN_INTERVAL_MAX * 100) / 100.0f;
 }
-
-// functia ce raspunde de spawnul de obstacole
 
 void SpawnObstacle(GameState* state, const WindowState* window) {
     for (int i = 0; i < MAX_OBSTACLES; i++) {
@@ -341,7 +303,6 @@ void SpawnObstacle(GameState* state, const WindowState* window) {
     }
 }
 
-// Update SpawnMeteor to create meteors from varied positions
 void SpawnMeteor(GameState* game, const WindowState* window) {
     for (int i = 0; i < MAX_METEORS; i++) {
         if (!game->meteors[i].active) {
@@ -352,27 +313,24 @@ void SpawnMeteor(GameState* game, const WindowState* window) {
             meteor->frameTime = 0;
             meteor->impactTime = 0;
             
-            // Much more varied spawn positions
-            // Choose from 3 different spawn patterns
             int spawnPattern = GetRandomValue(0, 2);
             switch (spawnPattern) {
-                case 0: // Far right, high up
+                case 0:
                     meteor->position.x = window->width + GetRandomValue(50, 250);
                     meteor->position.y = -GetRandomValue(100, 300);
                     break;
                     
-                case 1: // Middle-right, very high
+                case 1:
                     meteor->position.x = window->width * 0.7f + GetRandomValue(-100, 100);
                     meteor->position.y = -GetRandomValue(200, 400);
                     break;
                     
-                case 2: // Far right, medium height
+                case 2:
                     meteor->position.x = window->width + GetRandomValue(50, 150);
                     meteor->position.y = -GetRandomValue(50, 150);
                     break;
             }
             
-            // More varied sizes
             float sizeVariation = GetRandomValue(70, 110);
             meteor->rect = (Rectangle){
                 meteor->position.x,
@@ -387,13 +345,11 @@ void SpawnMeteor(GameState* game, const WindowState* window) {
     }
 }
 
-// Modify UpdateMeteors so grounded meteors move like obstacles
 void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime) {
     if (!game->isStoryMode || !game->bossActive || game->gameOver) {
         return;
     }
     
-    // Spawn new meteors
     game->meteorSpawnTimer += deltaTime;
     if (game->meteorSpawnTimer >= game->nextMeteorSpawnTime) {
         SpawnMeteor(game, window);
@@ -402,35 +358,27 @@ void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime) 
             (METEOR_SPAWN_INTERVAL_MAX - METEOR_SPAWN_INTERVAL_MIN) * GetRandomValue(0, 100) / 100.0f;
     }
     
-    // Ground level for impact detection
     float groundY = window->height - GROUND_HEIGHT * window->scaleFactor;
     
-    // Update existing meteors
     for (int i = 0; i < MAX_METEORS; i++) {
         Meteor* meteor = &game->meteors[i];
         if (!meteor->active) continue;
         
-        // Update animation frames faster
         meteor->frameTime += deltaTime;
         
         if (meteor->state == METEOR_STATE_FALLING) {
-            // Faster animation for falling
             if (meteor->frameTime >= METEOR_ANIM_DELAY) {
                 meteor->frameTime = 0;
                 meteor->currentFrame = (meteor->currentFrame + 1) % 2;
             }
             
-            // Much faster diagonal movement
             meteor->position.x -= METEOR_FALL_SPEED_X * deltaTime;
             meteor->position.y += METEOR_FALL_SPEED_Y * deltaTime;
             
-            // Update meteor position
             meteor->rect.x = meteor->position.x;
             meteor->rect.y = meteor->position.y;
             
-            // Check if meteor hit the ground or is off-screen
             if (meteor->position.x < -meteor->rect.width * 2) {
-                // If meteor goes off-screen to the left, deactivate it
                 meteor->active = false;
                 continue;
             }
@@ -442,11 +390,9 @@ void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime) 
                 meteor->currentFrame = 0;
                 meteor->frameTime = 0;
                 
-                // Make the screen shake more noticeable on impact
                 game->screenShakeTimer = 0.3f;
                 game->screenShakeIntensity = 8.0f;
                 
-                // Set up collision rectangle for impact state
                 meteor->collisionRect = (Rectangle){
                     meteor->position.x + 10,
                     meteor->position.y + meteor->rect.height - 25,
@@ -455,14 +401,10 @@ void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime) 
                 };
             }
         } else if (meteor->state == METEOR_STATE_IMPACT) {
-            // move toward player at obstacle speed
             meteor->position.x -= OBSTACLE_SPEED * window->scaleFactor * deltaTime;
             meteor->rect.x = meteor->position.x;
             meteor->collisionRect.x = meteor->position.x + 10;
 
-            // Handle impact state - meteors remain on the ground longer
-            
-            // Only animate during the initial impact
             if (meteor->impactTime < 1.0f) {
                 if (meteor->frameTime >= METEOR_ANIM_DELAY * 1.5f) {
                     meteor->frameTime = 0;
@@ -474,27 +416,23 @@ void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime) 
             
             meteor->impactTime += deltaTime;
             
-            // Keep meteors on the ground much longer
             if (meteor->impactTime > METEOR_GROUND_LIFETIME) {
-                // Make meteors fade out very gradually rather than disappear suddenly
                 if (meteor->impactTime > METEOR_GROUND_LIFETIME + 3.0f) {
                     meteor->active = false;
                 }
             }
             
-            // Check for collision with player as long as the meteor is active
             if (CheckCollisionRecs(game->rect, meteor->collisionRect)) {
                 game->gameOver = true;
+                break;
             }
         }
     }
 }
 
-// Modify UpdateObstacles to stop spawning near boss fight
 void UpdateObstacles(GameState* state, const WindowState* window, float deltaTime) {
     if (state->gameOver) return;
 
-    // Only spawn if not within 50 points of boss fight
     if (!(state->isStoryMode && state->score >= PRE_BOSS_THRESHOLD)) {
         state->obstacles.spawnTimer += deltaTime;
         if (state->obstacles.spawnTimer >= state->obstacles.nextSpawnTime) {
@@ -524,32 +462,28 @@ void UpdateObstacles(GameState* state, const WindowState* window, float deltaTim
 
             if (CheckCollisionRecs(state->rect, obs->collisionRect)) {
                 state->gameOver = true;
+                break;
             }
         }
     }
 }
 
-// Update UpdateBossFight to spawn more meteors at the start
 void UpdateBossFight(GameState* game, WindowState* window, float deltaTime) {
     if (!game->isStoryMode || game->gameOver) return;
     
-    // Check for boss trigger
     if (!game->bossActive && game->score >= BOSS_THRESHOLD_SCORE) {
         game->bossActive = true;
         game->screenShakeTimer = SCREEN_SHAKE_DURATION;
         game->screenShakeIntensity = SCREEN_SHAKE_INTENSITY;
         
-        // Immediately spawn several meteors when boss activates
         for (int i = 0; i < 3; i++) {
             SpawnMeteor(game, window);
         }
         
-        // Reset meteor spawn timer for quicker first spawn
         game->meteorSpawnTimer = 0.0f;
         game->nextMeteorSpawnTime = 0.3f;
     }
     
-    // Update screen shake effect
     if (game->screenShakeTimer > 0) {
         game->screenShakeTimer -= deltaTime;
         if (game->screenShakeTimer <= 0) {
@@ -557,37 +491,31 @@ void UpdateBossFight(GameState* game, WindowState* window, float deltaTime) {
         }
     }
     
-    // Update meteors
     if (game->bossActive) {
         UpdateMeteors(game, window, deltaTime);
     }
 }
 
-// Draw HP bar for boss fight
 void DrawBossHP(const WindowState* window, const GameState* game) {
     if (!game->isStoryMode || !game->bossActive) return;
     
-    const float barWidth = 500 * window->scaleFactor; // Increased from 300 to 500
+    const float barWidth = 500 * window->scaleFactor;
     const float barHeight = 30 * window->scaleFactor;
     const float spacing = 5 * window->scaleFactor;
     const float segmentWidth = (barWidth - (spacing * 2)) / BOSS_HP_MAX;
     const float startX = (window->width - barWidth) / 2;
     const float startY = window->height - barHeight - 10 * window->scaleFactor;
     
-    // Draw background bar
     DrawRectangle(startX, startY, barWidth, barHeight, DARKGRAY);
     
-    // Draw each HP segment
     for (int i = 0; i < game->bossHP; i++) {
         float segX = startX + (i * (segmentWidth + spacing));
         DrawRectangle(segX, startY, segmentWidth, barHeight, RED);
     }
     
-    // Draw border
     DrawRectangleLinesEx((Rectangle){ startX, startY, barWidth, barHeight }, 2 * window->scaleFactor, BLACK);
 }
 
-// Apply screen shake to drawing
 Vector2 ApplyScreenShake(const GameState* game) {
     if (game->screenShakeTimer <= 0 || game->screenShakeIntensity <= 0) {
         return (Vector2){ 0, 0 };
@@ -598,8 +526,6 @@ Vector2 ApplyScreenShake(const GameState* game) {
         GetRandomValue(-game->screenShakeIntensity, game->screenShakeIntensity)
     };
 }
-
-// initializarea parametrilor de joc
 
 void InitPauseMenu(GameState* game, const WindowState* window) {
     const float buttonWidth = 300;
@@ -640,23 +566,20 @@ void InitGameState(GameState* state) {
     state->nightModeActive = false;
     state->nightCycleTimer = 0.0f;
     state->isNight = false;
+    state->dayCycleTimer = 0.0f;
     state->lightMask = LoadRenderTexture(BASE_RESOLUTION.x, BASE_RESOLUTION.y);
     state->nightAlpha = 0.0f;
 
-    // Initialize boss fight variables
     state->isStoryMode = false;
     state->bossActive = false;
     state->bossHP = BOSS_HP_MAX;
     state->screenShakeTimer = 0.0f;
     state->screenShakeIntensity = 0.0f;
 
-    // Initialize meteors
     InitMeteors(state);
 
     InitPauseMenu(state, &(WindowState){ .width = BASE_RESOLUTION.x, .height = BASE_RESOLUTION.y });
 }
-
-// actualizare scor (1 pct la 0.1 sec)
 
 void UpdateScore(GameState* game, float deltaTime) {
     game->scoreTimer += deltaTime;
@@ -666,8 +589,6 @@ void UpdateScore(GameState* game, float deltaTime) {
         if (game->score > game->highScore) game->highScore = game->score;
     }
 }
-
-// mintine pozitia butoanelor relativ cu fereastra 
 
 void UpdateButtonPositions(WindowState* window) {
     const float buttonWidth = 120;
@@ -706,33 +627,28 @@ void DrawMenu(const WindowState* window) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    // Title
     const char* title = "DINO GAME";
     int titleWidth = MeasureText(title, 60);
     DrawText(title, window->width/2 - titleWidth/2, 150, 60, DARKGRAY);
 
-    // Play button
     DrawRectangleRec(window->menu.playButton.rect, window->menu.playHovered ? SKYBLUE : LIGHTGRAY);
     DrawText(window->menu.playButton.text, 
         window->menu.playButton.rect.x + (window->menu.playButton.rect.width - window->menu.playButton.textWidth)/2,
         window->menu.playButton.rect.y + 10,
         30, DARKBLUE);
 
-    // Story Mode button
     DrawRectangleRec(window->menu.storyButton.rect, window->menu.storyHovered ? SKYBLUE : LIGHTGRAY);
     DrawText(window->menu.storyButton.text, 
         window->menu.storyButton.rect.x + (window->menu.storyButton.rect.width - window->menu.storyButton.textWidth)/2,
         window->menu.storyButton.rect.y + 10,
         30, DARKBLUE);
 
-    // Resolution button
     DrawRectangleRec(window->menu.resolutionButton.rect, window->menu.resolutionHovered ? SKYBLUE : LIGHTGRAY);
     DrawText(window->menu.resolutionButton.text,
         window->menu.resolutionButton.rect.x + (window->menu.resolutionButton.rect.width - window->menu.resolutionButton.textWidth)/2,
         window->menu.resolutionButton.rect.y + 10,
         30, DARKBLUE);
 
-    // Quit button
     DrawRectangleRec(window->menu.quitButton.rect, window->menu.quitHovered ? SKYBLUE : LIGHTGRAY);
     DrawText(window->menu.quitButton.text,
         window->menu.quitButton.rect.x + (window->menu.quitButton.rect.width - window->menu.quitButton.textWidth)/2,
@@ -742,7 +658,6 @@ void DrawMenu(const WindowState* window) {
     EndDrawing();
 }
 
-// Optimize DrawResolutionMenu by reducing redundancy
 void DrawResolutionMenu(const WindowState* window) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
@@ -769,14 +684,12 @@ void DrawResolutionMenu(const WindowState* window) {
     EndDrawing();
 }
 
-// Update InitMenuButtons to properly position all buttons with consistent spacing
 void InitMenuButtons(WindowState* window) {
     const float buttonWidth = 200;
     const float buttonHeight = 50;
-    const float buttonSpacing = 20; // Define consistent spacing between buttons
+    const float buttonSpacing = 20;
     Vector2 center = { window->width/2 - buttonWidth/2, window->height/2 - buttonHeight/2 };
 
-    // Start from a higher position to accommodate all buttons
     float startY = center.y - 180;
     
     window->menu.playButton = (MenuButton){
@@ -805,8 +718,6 @@ void InitMenuButtons(WindowState* window) {
     window->menu.resolutionButton.textWidth = MeasureText(window->menu.resolutionButton.text, 30);
 }
 
-// intializare parametrilor de fereastra
-
 void InitWindowState(WindowState* state) {
     state->width = BASE_RESOLUTION.x;
     state->height = BASE_RESOLUTION.y;
@@ -830,33 +741,26 @@ void InitWindowState(WindowState* state) {
     InitMenuButtons(state);
 }
 
-// formula de calcul a factorului de scalare la diferite dimensiuni a ferestrei
-
 void UpdateScaleFactor(WindowState* window) {
     window->scaleFactor = (float)window->height / BASE_RESOLUTION.y;
 }
 
-// in cazul selectarii unei dimensiuni se activeaza functia data care modifica parametrii elementelor de joc ca acestea sa se scaleze conform dimensiunii
-
 void RescaleGame(GameState* game, WindowState* window) {
-    UpdateScaleFactor(window); // primeste factorul de scalare
+    UpdateScaleFactor(window);
     game->screenPosition.x = game->basePosition.x * window->scaleFactor;
     game->screenPosition.y = game->basePosition.y * window->scaleFactor;
 
-    // Recrează lightMask cu noile dimensiuni
     if (game->lightMask.id != 0) {
         UnloadRenderTexture(game->lightMask);
     }
     game->lightMask = LoadRenderTexture(window->width, window->height);
     
-    // actualizează dreptunghiul personajului
     const Rectangle* frame = game->isCrouching ? &game->crouchFrames[game->currentFrame] : &game->runFrames[game->currentFrame];
     game->rect.width = frame->width * window->scaleFactor;
     game->rect.height = frame->height * window->scaleFactor;
     game->rect.x = game->screenPosition.x;
     game->rect.y = game->screenPosition.y;
 
-    // actualizează obstacolele active
     for (int i = 0; i < MAX_OBSTACLES; i++) {
         Obstacle* obs = &game->obstacles.obstacles[i];
         if (obs->active) {
@@ -876,10 +780,8 @@ void RescaleGame(GameState* game, WindowState* window) {
     }
     UpdateButtonPositions(window);
     UpdateResolutionButtonPositions(window);
-    InitMenuButtons(window); // Add this to recenter menu buttons
+    InitMenuButtons(window);
 }
-
-// modul fullscreen
 
 void HandleFullscreenToggle(WindowState* window) {
     if (window->isFullscreen) {
@@ -897,8 +799,6 @@ void HandleFullscreenToggle(WindowState* window) {
     window->isFullscreen = !window->isFullscreen;
 }
 
-// actualizare animatii
-
 void UpdateAnimation(GameState* game, const WindowState* window, float deltaTime) {
     game->frameTime += deltaTime;
     if (game->frameTime >= FRAME_DELAY) {
@@ -910,43 +810,41 @@ void UpdateAnimation(GameState* game, const WindowState* window, float deltaTime
     }
 }
 
-// Optimize HandlePauseMenuInput by using the utility function
 void HandlePauseMenuInput(WindowState* window, GameState* game) {
     game->pauseMenu.continueHovered = IsButtonHovered(&game->pauseMenu.continueButton);
     game->pauseMenu.mainMenuHovered = IsButtonHovered(&game->pauseMenu.mainMenuButton);
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (game->pauseMenu.continueHovered) {
-            game->pauseMenu.isPaused = false; // Resume the game
+            game->pauseMenu.isPaused = false;
         } else if (game->pauseMenu.mainMenuHovered) {
-            game->pauseMenu.isPaused = false; // Unpause the game
-            ResetGame(game); // Reset the game state
-            window->gameState = GAME_STATE_MENU; // Go to main menu
+            game->pauseMenu.isPaused = false;
+            ResetGame(game);
+            window->gameState = GAME_STATE_MENU;
             window->width = GetScreenWidth();
             window->height = GetScreenHeight();
-            UpdateScaleFactor(window); // Update scale factor without changing resolution
+            UpdateScaleFactor(window);
         }
     }
 }
 
-// Optimize HandleInput by reducing redundant checks
 void HandleInput(WindowState* window, GameState* game) {
     Vector2 mousePos = GetMousePosition();
 
     if (window->gameState == GAME_STATE_MENU) {
         window->menu.playHovered = IsButtonHovered(&window->menu.playButton.rect);
-        window->menu.storyHovered = IsButtonHovered(&window->menu.storyButton.rect); // Add story button hover check
+        window->menu.storyHovered = IsButtonHovered(&window->menu.storyButton.rect);
         window->menu.quitHovered = IsButtonHovered(&window->menu.quitButton.rect);
         window->menu.resolutionHovered = IsButtonHovered(&window->menu.resolutionButton.rect);
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             if (window->menu.playHovered) {
                 window->gameState = GAME_STATE_PLAYING;
-                game->isStoryMode = false; // Regular mode
+                game->isStoryMode = false;
                 ResetGame(game);
             } else if (window->menu.storyHovered) {
                 window->gameState = GAME_STATE_PLAYING;
-                game->isStoryMode = true; // Story mode
+                game->isStoryMode = true;
                 ResetGame(game);
             } else if (window->menu.quitHovered) {
                 CloseWindow();
@@ -963,14 +861,10 @@ void HandleInput(WindowState* window, GameState* game) {
             for (int i = 0; i < NUM_RESOLUTIONS; i++) {
                 if (IsButtonHovered(&window->resolutions[i].rect)) {
                     if (i == NUM_RESOLUTIONS - 1) {
-                        HandleFullscreenToggle(window);
+                        ChangeResolution(window, game, 0, 0, true);
                     } else {
-                        if (window->isFullscreen) HandleFullscreenToggle(window);
-                        window->width = window->resolutions[i].width;
-                        window->height = window->resolutions[i].height;
-                        SetWindowSize(window->width, window->height);
+                        ChangeResolution(window, game, window->resolutions[i].width, window->resolutions[i].height, false);
                     }
-                    RescaleGame(game, window);
                     break;
                 }
             }
@@ -987,7 +881,6 @@ void HandleInput(WindowState* window, GameState* game) {
     bool isWPressed = IsKeyDown(KEY_W);
     bool wasCrouching = game->isCrouching;
 
-    // procesare input pentru butoanele de rezoluție
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mousePos = GetMousePosition();
         for (int i = 0; i < NUM_RESOLUTIONS; i++) {
@@ -1008,7 +901,6 @@ void HandleInput(WindowState* window, GameState* game) {
 
     if (IsKeyPressed(KEY_F11)) HandleFullscreenToggle(window);
 
-    // daca jocul s-a terminat, permite restartarea prin tasta SPACE
     if (game->gameOver) {
         if (IsKeyPressed(KEY_SPACE)) {
             ResetGame(game);
@@ -1016,7 +908,6 @@ void HandleInput(WindowState* window, GameState* game) {
         return;
     }
     
-    // actualizare stari personaj (sarit/furis)
     game->isCrouching = IsKeyDown(KEY_S);
     if (!game->isJumping && (game->isCrouching != wasCrouching)) {
         float newHeight = game->isCrouching ? game->crouchFrameHeight : game->runFrameHeight;
@@ -1052,7 +943,7 @@ void HandleInput(WindowState* window, GameState* game) {
     }
 
     if (window->gameState == GAME_STATE_PLAYING) {
-        if (IsKeyPressed(KEY_O)) { // Pause the game when "O" is pressed
+        if (IsKeyPressed(KEY_O)) {
             game->pauseMenu.isPaused = !game->pauseMenu.isPaused;
         }
 
@@ -1063,10 +954,7 @@ void HandleInput(WindowState* window, GameState* game) {
     }
 }
 
-// actualizarea parametrilor ce raspund de fizica jocului
-
 void UpdatePhysics(GameState* game, const WindowState* window, float deltaTime) {
-    // aici se configureaza saritura
     if (game->isJumping) {
         if (game->isJumpCharging && game->jumpChargeTime < MAX_JUMP_CHARGE_TIME) {
             game->jumpChargeTime += deltaTime;
@@ -1093,13 +981,10 @@ void UpdatePhysics(GameState* game, const WindowState* window, float deltaTime) 
 
 }
 
-// initializarea elemntelor de joc pe ecran
-
-// Optimize DrawPauseMenu by reducing redundant calls
 void DrawPauseMenu(const WindowState* window, const GameState* game) {
     DrawRectangle(0, 0, window->width, window->height, (Color){ 0, 0, 0, 150 });
 
-    const Rectangle* buttons[] = { &game->pauseMenu.continueButton, &game->pauseMenu.mainMenuButton }; // Use const Rectangle*
+    const Rectangle* buttons[] = { &game->pauseMenu.continueButton, &game->pauseMenu.mainMenuButton };
     const char* labels[] = { "Continue", "Main Menu" };
     bool hovered[] = { game->pauseMenu.continueHovered, game->pauseMenu.mainMenuHovered };
 
@@ -1109,33 +994,37 @@ void DrawPauseMenu(const WindowState* window, const GameState* game) {
     }
 }
 
-// Update DrawMeteors to handle the permanent ground state
 void DrawMeteors(const WindowState* window, const GameState* game, Vector2 shakeOffset) {
-    // Debug output to see if any meteors are active
+#if DEBUG_METEOR_COUNT
     int activeCount = 0;
     for (int i = 0; i < MAX_METEORS; i++) {
         if (game->meteors[i].active) activeCount++;
     }
-    
     if (game->isStoryMode && game->bossActive) {
         DrawText(TextFormat("Active Meteors: %d", activeCount), 10, 150, 20, RED);
     }
-    
+#endif
     for (int i = 0; i < MAX_METEORS; i++) {
         const Meteor* meteor = &game->meteors[i];
         if (!meteor->active) continue;
         
-        Rectangle source;
+        Rectangle source = {0};
         Color tint = WHITE;
         
         if (meteor->state == METEOR_STATE_FALLING) {
-            // Falling meteor sprite
-            source = (Rectangle){ 260, 0, 60, 60 };
+            if (meteor->currentFrame == 0) {
+                source = (Rectangle){ 2158, 6, 110, 120 };
+            } else {
+                source = (Rectangle){ 2275, 6, 110, 120 };
+            }
         } else if (meteor->state == METEOR_STATE_IMPACT) {
-            // Impact crater sprite
-            source = (Rectangle){ 320, 0, 60, 60 };
-            
-            // If the meteor has been on the ground for a while, start fading it
+            if (meteor->currentFrame == 0) {
+                source = (Rectangle){ 2392, 34, 103, 68 };
+            } else if (meteor->currentFrame == 1) {
+                source = (Rectangle){ 2497, 34, 129, 74 };
+            } else {
+                source = (Rectangle){ 2643, 34, 90, 51 };
+            }
             if (meteor->impactTime > METEOR_GROUND_LIFETIME) {
                 float alpha = 1.0f - (meteor->impactTime - METEOR_GROUND_LIFETIME) / 3.0f;
                 tint = (Color){ 255, 255, 255, (unsigned char)(255 * alpha) };
@@ -1144,34 +1033,26 @@ void DrawMeteors(const WindowState* window, const GameState* game, Vector2 shake
             continue;
         }
         
-        // Draw the meteor with shake offset
         Rectangle destRect = {
             meteor->rect.x + shakeOffset.x,
             meteor->rect.y + shakeOffset.y,
             meteor->rect.width,
             meteor->rect.height
         };
-        
-        // Use orange color rectangle to make it visible for debugging
-        DrawRectangleRec(destRect, ORANGE);
         DrawTexturePro(game->spriteSheet, source, destRect, (Vector2){0}, 0, tint);
     }
 }
 
-// Update DrawGame to include meteors
 void DrawGame(const WindowState* window, const GameState* game) {
     BeginDrawing();
     ClearBackground(WHITE);
     
-    // Apply screen shake offset
     Vector2 shakeOffset = ApplyScreenShake(game);
     
-    // Ground
     float groundY = (BASE_RESOLUTION.y - GROUND_HEIGHT) * window->scaleFactor;
     float groundHeight = GROUND_HEIGHT * window->scaleFactor;
     DrawRectangle(0, groundY, window->width, groundHeight, DARKGRAY);
 
-    // Draw character with screen shake offset
     const Rectangle* frame = game->isCrouching ? &game->crouchFrames[game->currentFrame] : &game->runFrames[game->currentFrame];
     Rectangle destRect = {
         game->screenPosition.x + shakeOffset.x,
@@ -1181,7 +1062,6 @@ void DrawGame(const WindowState* window, const GameState* game) {
     };
     DrawTexturePro(game->spriteSheet, *frame, destRect, (Vector2){0}, 0, WHITE);
 
-    // Draw obstacles with screen shake offset
     for (int i = 0; i < MAX_OBSTACLES; i++) {
         const Obstacle* obs = &game->obstacles.obstacles[i];
         if (obs->active) {
@@ -1205,21 +1085,17 @@ void DrawGame(const WindowState* window, const GameState* game) {
         }
     }
 
-    // Draw meteors (after obstacles, before night mode)
     if (game->isStoryMode && game->bossActive) {
         DrawMeteors(window, game, shakeOffset);
     }
 
-    // Night mode with proper scaling
     if (game->nightModeActive && game->nightAlpha > 0) {
         BeginTextureMode(game->lightMask);
         ClearBackground(BLANK);
 
-        // Full dark overlay
         DrawRectangle(0, 0, window->width, window->height, 
                       (Color){0, 0, 0, (unsigned char)(game->nightAlpha * NIGHT_ALPHA)});
 
-        // Visibility circle around the player
         Vector2 playerCenter = {
             game->screenPosition.x + game->rect.width / 2,
             game->screenPosition.y + game->rect.height / 2
@@ -1234,26 +1110,22 @@ void DrawGame(const WindowState* window, const GameState* game) {
 
         EndTextureMode();
 
-        // Draw the light mask
         DrawTextureRec(game->lightMask.texture, 
                        (Rectangle){ 0, 0, window->width, -window->height }, 
                        (Vector2){ 0, 0 }, 
                        WHITE);
     }
 
-    // Draw boss HP bar if in story mode and boss is active
     if (game->isStoryMode && game->bossActive) {
         DrawBossHP(window, game);
     }
 
-    // gameover
     if (game->gameOver) {
         const char* text = "GAME OVER - Press SPACE to restart";
         int textWidth = MeasureText(text, 40);
         DrawText(text, (window->width - textWidth) / 2, window->height / 2, 40, RED);
     }
 
-    // scorul și scorul maxim
     const char* scoreText = TextFormat("SCORE: %d", game->score);
     const char* highScoreText = TextFormat("HIGH SCORE: %d", game->highScore);
     int scoreWidth = MeasureText(scoreText, 40);
@@ -1269,6 +1141,18 @@ void DrawGame(const WindowState* window, const GameState* game) {
     }
 
     EndDrawing();
+}
+
+void ChangeResolution(WindowState* window, GameState* game, int width, int height, bool fullscreen) {
+    if (fullscreen) {
+        if (!window->isFullscreen) HandleFullscreenToggle(window);
+    } else {
+        if (window->isFullscreen) HandleFullscreenToggle(window);
+        window->width = width;
+        window->height = height;
+        SetWindowSize(window->width, window->height);
+    }
+    RescaleGame(game, window);
 }
 
 int main(void) {
@@ -1292,7 +1176,7 @@ int main(void) {
                 DrawMenu(&window);
                 break;
 
-            case GAME_STATE_RESOLUTION: // Added resolution menu state
+            case GAME_STATE_RESOLUTION:
                 DrawResolutionMenu(&window);
                 break;
                 
@@ -1301,46 +1185,43 @@ int main(void) {
                     UpdatePhysics(&game, &window, deltaTime);
                     UpdateScore(&game, deltaTime);
                     UpdateObstacles(&game, &window, deltaTime);
-                    UpdateBossFight(&game, &window, deltaTime); // This now includes meteor updates
-                    
-                    if (game.score >= 10 && !game.nightModeActive) {
-                        game.nightModeActive = true;
-                        game.nightCycleTimer = 0.0f;
-                    }
+                    UpdateBossFight(&game, &window, deltaTime);
 
-                    if (game.nightModeActive) {
-                        game.nightCycleTimer += deltaTime;
-                        float totalCycleTime = DAY_DURATION + NIGHT_DURATION + 2 * FADE_DURATION;
-                        float cycleProgress = fmod(game.nightCycleTimer, totalCycleTime);
-
-                        if (cycleProgress < DAY_DURATION) {
+                    if (!game.isNight) {
+                        game.dayCycleTimer += deltaTime;
+                        if (game.score >= 200 && game.dayCycleTimer >= DAY_DURATION) {
+                            game.nightModeActive = true;
+                            game.nightCycleTimer = 0.0f;
                             game.nightAlpha = 0.0f;
-                        } else if (cycleProgress < DAY_DURATION + FADE_DURATION) {
-                            float fadeProgress = (cycleProgress - DAY_DURATION) / FADE_DURATION;
-                            game.nightAlpha = fadeProgress;
-                        } else if (cycleProgress < DAY_DURATION + FADE_DURATION + NIGHT_DURATION) {
-                            game.nightAlpha = 1.0f;
-                        } else {
-                            float fadeProgress = (cycleProgress - (DAY_DURATION + FADE_DURATION + NIGHT_DURATION)) / FADE_DURATION;
-                            game.nightAlpha = 1.0f - fadeProgress;
+                            game.isNight = true;
                         }
                     }
-
-                    if (!game.isJumping) {
-                        UpdateAnimation(&game, &window, deltaTime);
+                    if (game.nightModeActive) {
+                        game.nightCycleTimer += deltaTime;
+                        if (game.nightCycleTimer < FADE_DURATION) {
+                            game.nightAlpha = game.nightCycleTimer / FADE_DURATION;
+                        } else if (game.nightCycleTimer < (FADE_DURATION + NIGHT_DURATION)) {
+                            game.nightAlpha = 1.0f;
+                        } else if (game.nightCycleTimer < (FADE_DURATION + NIGHT_DURATION + FADE_DURATION)) {
+                            game.nightAlpha = 1.0f - (game.nightCycleTimer - FADE_DURATION - NIGHT_DURATION) / FADE_DURATION;
+                        } else {
+                            game.nightModeActive = false;
+                            game.nightCycleTimer = 0.0f;
+                            game.nightAlpha = 0.0f;
+                            game.isNight = false;
+                            game.dayCycleTimer = 0.0f;
+                        }
                     }
                 }
+                UpdateAnimation(&game, &window, deltaTime);
                 DrawGame(&window, &game);
                 break;
-
+                
             case GAME_STATE_GAME_OVER:
-                DrawGame(&window, &game);
                 break;
         }
     }
 
-    UnloadRenderTexture(game.lightMask);
-    UnloadTexture(game.spriteSheet);
     CloseWindow();
     return 0;
 }
