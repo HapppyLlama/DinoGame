@@ -12,4 +12,4 @@ void HandleFullscreenToggle(WindowState* window);
 void UpdateButtonPositions(WindowState* window);
 void UpdateResolutionButtonPositions(WindowState* window);
 
-#endif // WINDOW_H
+#endif

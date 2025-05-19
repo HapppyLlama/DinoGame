@@ -1,4 +1,3 @@
-// menu.c - Menu and pause menu logic implementation
 #include "menu.h"
 #include "window.h"
 #include "game.h"
@@ -9,15 +8,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-// Move all menu and pause menu related function definitions here from main.c
-// Example:
-// void InitMenuButtons(WindowState* window) { ... }
-// void DrawMenu(const WindowState* window) { ... }
-// void DrawResolutionMenu(const WindowState* window) { ... }
-// void HandlePauseMenuInput(WindowState* window, GameState* game) { ... }
-// void InitPauseMenu(GameState* game, const WindowState* window) { ... }
-
-// Menu and pause menu logic implementations moved from main.c
 
 void InitMenuButtons(WindowState* window) {
     const float buttonWidth = 200;

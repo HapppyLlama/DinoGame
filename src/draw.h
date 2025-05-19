@@ -12,4 +12,4 @@ void DrawBossHP(const WindowState* window, const GameState* game);
 void UpdateAnimation(GameState* game, const WindowState* window, float deltaTime);
 Vector2 ApplyScreenShake(const GameState* game);
 
-#endif // DRAW_H
+#endif 

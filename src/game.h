@@ -15,4 +15,4 @@ void SpawnObstacle(GameState* state, const WindowState* window);
 void SpawnMeteor(GameState* game, const WindowState* window);
 void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime);
 
-#endif // GAME_H
+#endif 

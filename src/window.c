@@ -1,4 +1,3 @@
-// window.c - Window and resolution management implementation
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,16 +8,6 @@
 #include "menu.h"
 #include "draw.h"
 #include "utils.h"
-
-// Move all WindowState and related function definitions here from main.c
-// Example:
-// void InitWindowState(WindowState* state) { ... }
-// void UpdateScaleFactor(WindowState* window) { ... }
-// void RescaleGame(GameState* game, WindowState* window) { ... }
-// void ChangeResolution(WindowState* window, GameState* game, int width, int height, bool fullscreen) { ... }
-// ...etc...
-
-// Window and resolution management implementations moved from main.c
 
 void InitWindowState(WindowState* state) {
     state->width = BASE_RESOLUTION.x;

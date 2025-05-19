@@ -12,4 +12,4 @@ void DrawResolutionMenu(const WindowState* window);
 void HandlePauseMenuInput(WindowState* window, GameState* game);
 void InitPauseMenu(GameState* game, const WindowState* window);
 
-#endif // MENU_H
+#endif
