@@ -40,6 +40,7 @@ Icon=$(pwd)/$ICON_FILE
 Type=Application
 Categories=Game;
 Terminal=false
+Path=$(pwd)
 EOL
 
 chmod +x $BUILD_DIR/$DESKTOP_FILE
