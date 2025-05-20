@@ -13,10 +13,10 @@
 - ✅ **Generarea obstacolelor**  
   Obstacolele constau în cactuși și păsări, generate aleator cu un interval minim de timp între apariții, pentru a evita secvențele imposibile. Coliziunea cu obstacolele încheie jocul și redirecționează jucătorul către ecranul de start.
 
-- ❌ **Crearea fundalului**  
+- ✅ **Crearea fundalului**  
   Fundal personalizat pentru o experiență vizuală plăcută.
 
-- ❌✅ **Design pentru elementele jocului**  
+- ✅ **Design pentru elementele jocului**  
   Elemente grafice pentru o estetică coerentă.
 
 - ✅ **Execuția jocului ca aplicație**  
@@ -27,7 +27,7 @@
 
 ## ⭐ Funcționalități opționale
 
-- ❌✅ **Boss Fight / Modul Campanie**  
+- ✅ **Boss Fight / Modul Campanie**  
   La atingerea unui scor prestabilit, jucătorul intră într-un boss fight. Bossul atacă prin aruncarea de meteoriți, iar lupta este împărțită în mai multe etape (faze). După fiecare etapă finalizată cu succes de către jucător, bossul primește damage. La finalul confruntării, odată cu înfrângerea bossului, se activează scena de sfârșit: personajul găsește o peșteră unde poate supraviețui.
 
 - ✅ **Ciclu zi-noapte**  
