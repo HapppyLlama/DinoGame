@@ -8,6 +8,7 @@
 #include "window.h"
 #include "menu.h"
 #include "draw.h"
+#include "sound.h"
 
 void SaveHighScore(int highScore) {
     FILE* file = fopen("highscore.bin", "wb");
@@ -29,6 +30,17 @@ int LoadHighScore() {
 
 bool IsButtonHovered(const Rectangle* button) {
     return CheckCollisionPointRec(GetMousePosition(), *button);
+}
+
+bool IsButtonHoveredScaled(const Rectangle* button, float scale) {
+    Vector2 mouse = GetMousePosition();
+    Rectangle scaled = {
+        button->x * scale,
+        button->y * scale,
+        button->width * scale,
+        button->height * scale
+    };
+    return CheckCollisionPointRec(mouse, scaled);
 }
 
 void HandleInput(WindowState* window, GameState* game) {
@@ -101,10 +113,16 @@ void HandleInput(WindowState* window, GameState* game) {
         }
     }
     if (IsKeyPressed(KEY_F11)) HandleFullscreenToggle(window);
-    if (game->gameOver) {
-        if (IsKeyPressed(KEY_SPACE)) {
-            ResetGame(game);
-        }
+    if (game->gameWon && IsKeyPressed(KEY_SPACE)) {
+        StopAllSounds(game);
+        window->gameState = GAME_STATE_MENU;
+        ResetGame(game);
+        return;
+    }
+    if (game->gameOver && !game->gameWon && IsKeyPressed(KEY_SPACE)) {
+        StopAllSounds(game);
+        ResetGame(game);
+        window->gameState = GAME_STATE_PLAYING;
         return;
     }
     game->isCrouching = IsKeyDown(KEY_S);
@@ -123,6 +141,8 @@ void HandleInput(WindowState* window, GameState* game) {
             game->isJumpCharging = true;
             game->jumpChargeTime = 0.0f;
             game->baseJumpVelocity = JUMP_FORCE;
+            
+            PlayJumpSound(game);
         }
     }
     if (wasWPressed && !isWPressed) {
@@ -131,10 +151,6 @@ void HandleInput(WindowState* window, GameState* game) {
     wasWPressed = isWPressed;
     if (game->isCrouching && game->isJumping) {
         game->baseJumpVelocity = FAST_FALL_VELOCITY;
-    }
-    if (game->gameOver && IsKeyPressed(KEY_SPACE)) {
-        window->gameState = GAME_STATE_MENU;
-        ResetGame(game);
     }
     if (window->gameState == GAME_STATE_PLAYING) {
         if (IsKeyPressed(KEY_O)) {

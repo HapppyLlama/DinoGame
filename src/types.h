@@ -26,7 +26,7 @@
 #define BOSS_HP_MAX 3
 #define SCREEN_SHAKE_DURATION 1.0f
 #define SCREEN_SHAKE_INTENSITY 10.0f
-#define PRE_BOSS_THRESHOLD (BOSS_THRESHOLD_SCORE - 50)
+#define PRE_BOSS_THRESHOLD (BOSS_THRESHOLD_SCORE - 20)
 #define MAX_METEORS 15
 #define METEOR_SPAWN_INTERVAL_MIN 0.5f
 #define METEOR_SPAWN_INTERVAL_MAX 1.5f
@@ -35,6 +35,13 @@
 #define METEOR_ANIM_DELAY 0.08f
 #define METEOR_GROUND_LIFETIME 10.0f
 #define METEOR_IMPACT_FRAMES 3
+#define MAX_CLOUDS 4
+#define CLOUD_MIN_SPEED 50.0f
+#define CLOUD_MAX_SPEED 150.0f
+#define CLOUD_MIN_ALPHA 0.5f
+#define CLOUD_MAX_ALPHA 0.9f
+#define CLOUD_SPAWN_INTERVAL_MIN 2.0f
+#define CLOUD_SPAWN_INTERVAL_MAX 5.0f
 static const Vector2 BASE_RESOLUTION = { 1600, 900 };
 typedef enum {
     GAME_STATE_MENU,
@@ -122,7 +129,15 @@ typedef struct {
     float frameTime;
     float impactTime;
     bool active;
+    bool hasDealtDamage;
 } Meteor;
+typedef struct {
+    Vector2 position;
+    float speed;
+    float scale;
+    float alpha;
+    bool active;
+} Cloud;
 typedef struct {
     Rectangle rect;
     Vector2 screenPosition;
@@ -161,6 +176,17 @@ typedef struct {
     float meteorSpawnTimer;
     float nextMeteorSpawnTime;
     int hp;
+    bool gameWon;
+    Sound jumpSound;
+    Sound gameOverSound;
+    Sound winSound;
+    Sound meteorImpactSound;
+    bool soundPlayed;
+
+    Texture2D cloudTexture;
+    Cloud clouds[MAX_CLOUDS];
+    float cloudSpawnTimer;
+    float nextCloudSpawnTime;
 } GameState;
 typedef struct {
     int width;

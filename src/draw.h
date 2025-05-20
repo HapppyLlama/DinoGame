@@ -11,5 +11,6 @@ void DrawMeteors(const WindowState* window, const GameState* game, Vector2 shake
 void DrawBossHP(const WindowState* window, const GameState* game);
 void UpdateAnimation(GameState* game, const WindowState* window, float deltaTime);
 Vector2 ApplyScreenShake(const GameState* game);
+void DrawClouds(const WindowState* window, const GameState* game);
 
-#endif 
+#endif

@@ -17,7 +17,7 @@ cd ../..
 echo "Compilare joc..."
 mkdir -p $BUILD_DIR
 
-SRC_FILES="main.c src/game.c src/window.c src/menu.c src/draw.c src/utils.c"
+SRC_FILES="main.c src/game.c src/window.c src/menu.c src/draw.c src/utils.c src/sound.c"
 INCLUDE_DIRS="-I. -I./src -I./raylib/src"
 LIBS="./raylib/src/libraylib.a -lm -lpthread -ldl -lrt -lX11"
 

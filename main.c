@@ -5,6 +5,7 @@
 #include "src/menu.h"
 #include "src/draw.h"
 #include "src/utils.h"
+#include "src/sound.h"
 
 #include <stdbool.h>
 
@@ -39,7 +40,14 @@ int main(void) {
                     UpdateScore(&game, deltaTime);
                     UpdateObstacles(&game, &window, deltaTime);
                     UpdateBossFight(&game, &window, deltaTime);
-
+                    UpdateClouds(&game, &window, deltaTime);
+                    if (game.gameWon) {
+                        window.gameState = GAME_STATE_GAME_OVER;
+                        PlayWinSound(&game);
+                    }
+                    if (game.gameOver && !game.gameWon) {
+                        PlayGameOverSound(&game);
+                    }
                     if (!game.isNight) {
                         game.dayCycleTimer += deltaTime;
                         if (game.score >= 200 && game.dayCycleTimer >= DAY_DURATION) {
@@ -71,10 +79,12 @@ int main(void) {
                 break;
                 
             case GAME_STATE_GAME_OVER:
+                DrawGame(&window, &game);
                 break;
         }
     }
 
+    UnloadSounds(&game);
     CloseWindow();
     return 0;
 }

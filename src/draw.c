@@ -10,17 +10,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-void DrawPauseMenu(const WindowState* window, const GameState* game) {
-    DrawRectangle(0, 0, window->width, window->height, (Color){ 0, 0, 0, 150 });
-    const Rectangle* buttons[] = { &game->pauseMenu.continueButton, &game->pauseMenu.mainMenuButton };
-    const char* labels[] = { "Continue", "Main Menu" };
-    bool hovered[] = { game->pauseMenu.continueHovered, game->pauseMenu.mainMenuHovered };
-    for (int i = 0; i < 2; i++) {
-        DrawRectangleRec(*buttons[i], hovered[i] ? SKYBLUE : LIGHTGRAY);
-        DrawText(labels[i], buttons[i]->x + 20, buttons[i]->y + 10, 30, DARKBLUE);
-    }
-}
-
 void DrawMeteors(const WindowState* window, const GameState* game, Vector2 shakeOffset) {
 #if DEBUG_METEOR_COUNT
     int activeCount = 0;
@@ -70,31 +59,16 @@ void DrawMeteors(const WindowState* window, const GameState* game, Vector2 shake
 void DrawBossHP(const WindowState* window, const GameState* game) {
     if (!game->isStoryMode || !game->bossActive) return;
     const float barWidth = 500 * window->scaleFactor;
-    const float barHeight = 30 * window->scaleFactor;
-    const float spacing = 5 * window->scaleFactor;
-    const float segmentWidth = (barWidth - (spacing * 2)) / 100;
+    const float barHeight = 36 * window->scaleFactor;
+    const float borderRadius = 18 * window->scaleFactor;
     const float startX = (window->width - barWidth) / 2;
-    const float startY = window->height - barHeight - 10 * window->scaleFactor;
-    DrawRectangle(startX, startY, barWidth, barHeight, DARKGRAY);
-    for (int i = 0; i < 100; i++) {
-        float segX = startX + (i * (segmentWidth + spacing));
-        Color segColor;
-        if (i < game->bossHP) {
-            if (game->bossHP < BOSS_HP_MAX && i == game->bossHP) {
-                segColor = (Color){255, 255, 0, 255};
-            } else {
-                segColor = RED;
-            }
-        } else {
-            segColor = (Color){80, 80, 80, 255};
-        }
-        DrawRectangle(segX, startY, segmentWidth, barHeight, segColor);
-    }
-    DrawRectangleLinesEx((Rectangle){ startX, startY, barWidth, barHeight }, 2 * window->scaleFactor, BLACK);
-    char hpText[32];
-    snprintf(hpText, sizeof(hpText), "Boss HP: %d/%d", game->bossHP, BOSS_HP_MAX);
-    int textWidth = MeasureText(hpText, 24);
-    DrawText(hpText, startX + (barWidth - textWidth) / 2, startY - 32 * window->scaleFactor, 24 * window->scaleFactor, YELLOW);
+    const float startY = window->height - barHeight - 30 * window->scaleFactor;
+    DrawRectangleRounded((Rectangle){ startX, startY, barWidth, barHeight }, 0.5f, 32, (Color){40, 40, 40, 220});
+    float hpPercent = (float)game->bossHP / 10.0f;
+    float fillWidth = barWidth * hpPercent;
+    Color fillColor = (hpPercent > 0.5f) ? (Color){ 0, 220, 40, 255 } : (hpPercent > 0.2f ? ORANGE : RED);
+    DrawRectangleRounded((Rectangle){ startX, startY, fillWidth, barHeight }, 0.5f, 32, fillColor);
+    DrawRectangleRoundedLines((Rectangle){ startX, startY, barWidth, barHeight }, 0.5f, 32, BLACK);
 }
 
 Vector2 ApplyScreenShake(const GameState* game) {
@@ -118,9 +92,33 @@ void UpdateAnimation(GameState* game, const WindowState* window, float deltaTime
     }
 }
 
+void DrawClouds(const WindowState* window, const GameState* game) {
+    for (int i = 0; i < MAX_CLOUDS; i++) {
+        if (!game->clouds[i].active) continue;
+        
+        const Cloud* cloud = &game->clouds[i];
+        
+        Vector2 scaledPos = {
+            cloud->position.x * window->scaleFactor,
+            cloud->position.y * window->scaleFactor
+        };
+        
+        DrawTextureEx(
+            game->cloudTexture, 
+            scaledPos,
+            0,
+            cloud->scale * window->scaleFactor,
+            Fade(WHITE, cloud->alpha)
+        );
+    }
+}
+
 void DrawGame(const WindowState* window, const GameState* game) {
     BeginDrawing();
     ClearBackground(WHITE);
+    
+    DrawClouds(window, game);
+    
     Vector2 shakeOffset = ApplyScreenShake(game);
     float groundY = (BASE_RESOLUTION.y - GROUND_HEIGHT) * window->scaleFactor;
     float groundHeight = GROUND_HEIGHT * window->scaleFactor;
@@ -183,10 +181,19 @@ void DrawGame(const WindowState* window, const GameState* game) {
     if (game->isStoryMode && game->bossActive) {
         DrawBossHP(window, game);
     }
-    if (game->gameOver) {
+    if (game->gameOver && !game->gameWon) {
         const char* text = "GAME OVER - Press SPACE to restart";
         int textWidth = MeasureText(text, 40);
         DrawText(text, (window->width - textWidth) / 2, window->height / 2, 40, RED);
+    } else if (game->gameWon) {
+        ClearBackground(BLACK);
+        const char* winText = "YOU WON!";
+        int fontSize = 100 * window->scaleFactor;
+        int textWidth = MeasureText(winText, fontSize);
+        DrawText(winText, (window->width - textWidth) / 2, window->height / 2 - fontSize / 2, fontSize, YELLOW);
+        const char* info = "Press SPACE to return to menu";
+        int infoWidth = MeasureText(info, 30);
+        DrawText(info, (window->width - infoWidth) / 2, window->height / 2 + fontSize / 2 + 20, 30, LIGHTGRAY);
     }
     const char* scoreText = TextFormat("SCORE: %d", game->score);
     const char* highScoreText = TextFormat("HIGH SCORE: %d", game->highScore);
@@ -201,9 +208,25 @@ void DrawGame(const WindowState* window, const GameState* game) {
         DrawPauseMenu(window, game);
     }
 
-    char hpText[32];
-    snprintf(hpText, sizeof(hpText), "HP: %d", game->hp);
-    DrawText(hpText, 20, 20, 24, RED);
+    if (game->isStoryMode && game->bossActive && game->bossHP <= 0) {
+        ClearBackground(BLACK);
+        const char* winText = "YOU WON!";
+        int fontSize = 100 * window->scaleFactor;
+        int textWidth = MeasureText(winText, fontSize);
+        DrawText(winText, (window->width - textWidth) / 2, window->height / 2 - fontSize / 2, fontSize, YELLOW);
+        const char* info = "Press SPACE to return to menu";
+        int infoWidth = MeasureText(info, 30);
+        DrawText(info, (window->width - infoWidth) / 2, window->height / 2 + fontSize / 2 + 20, 30, LIGHTGRAY);
+    } else if (game->gameWon) {
+        ClearBackground(BLACK);
+        const char* winText = "YOU WON!";
+        int fontSize = 100 * window->scaleFactor;
+        int textWidth = MeasureText(winText, fontSize);
+        DrawText(winText, (window->width - textWidth) / 2, window->height / 2 - fontSize / 2, fontSize, YELLOW);
+        const char* info = "Press SPACE to return to menu";
+        int infoWidth = MeasureText(info, 30);
+        DrawText(info, (window->width - infoWidth) / 2, window->height / 2 + fontSize / 2 + 20, 30, LIGHTGRAY);
+    }
 
     EndDrawing();
 }

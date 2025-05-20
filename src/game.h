@@ -14,5 +14,9 @@ void InitMeteors(GameState* state);
 void SpawnObstacle(GameState* state, const WindowState* window);
 void SpawnMeteor(GameState* game, const WindowState* window);
 void UpdateMeteors(GameState* game, const WindowState* window, float deltaTime);
+void InitClouds(GameState* game);
+void SpawnCloud(GameState* game, const WindowState* window);
+void SpawnCloudAt(GameState* game, int index, float xPosition);
+void UpdateClouds(GameState* game, const WindowState* window, float deltaTime);
 
-#endif 
+#endif

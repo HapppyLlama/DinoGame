@@ -7,6 +7,7 @@
 int LoadHighScore();
 void SaveHighScore(int highScore);
 bool IsButtonHovered(const Rectangle* button);
+bool IsButtonHoveredScaled(const Rectangle* button, float scale);
 void HandleInput(WindowState* window, GameState* game);
 
-#endif // UTILS_H
+#endif
